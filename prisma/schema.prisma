@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── User ────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspaces  WorkspaceMember[]
+  documents   Document[]
+}
+
+// ─── Workspace ───────────────────────────────────────────────
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  icon      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members   WorkspaceMember[]
+  documents Document[]
+}
+
+model WorkspaceMember {
+  id          String   @id @default(cuid())
+  role        Role     @default(MEMBER)
+  workspaceId String
+  userId      String
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([workspaceId])
+  @@index([userId])
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+// ─── Document (Page) ─────────────────────────────────────────
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String   @default("Untitled")
+  content     Json?    // TipTap JSON content
+  icon        String?
+  coverImage  String?
+  isPublished Boolean  @default(false)
+  isArchived  Boolean  @default(false)
+  isFavorite  Boolean  @default(false)
+  isLocked    Boolean  @default(false)
+  isFullWidth Boolean  @default(false)
+
+  parentId    String?
+  parent      Document?  @relation("DocumentTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Document[] @relation("DocumentTree")
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  authorId    String
+  author      User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([workspaceId, isArchived])
+  @@index([parentId])
+  @@index([authorId])
+}
