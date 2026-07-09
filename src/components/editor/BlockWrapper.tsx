@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { useEditorStore } from '@/store/editor-store';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { BlockRenderer } from './BlockRenderer';
-import { useState } from 'react';
+import { BlockMenu } from './BlockMenu';
 
 interface BlockWrapperProps {
   blockId: string;
@@ -11,10 +12,8 @@ interface BlockWrapperProps {
 
 export function BlockWrapper({ blockId, depth }: BlockWrapperProps) {
   const block = useEditorStore((s) => s.blocks[blockId]);
-  const deleteBlock = useEditorStore((s) => s.deleteBlock);
-  const duplicateBlock = useEditorStore((s) => s.duplicateBlock);
-  const addBlock = useEditorStore((s) => s.addBlock);
   const [showMenu, setShowMenu] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null);
 
   const {
     attributes,
@@ -30,71 +29,71 @@ export function BlockWrapper({ blockId, depth }: BlockWrapperProps) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
-    marginLeft: depth * 24,
+    opacity: isDragging ? 0.4 : 1,
+    paddingLeft: depth * 24,
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMenuPos({ x: e.clientX, y: e.clientY });
+    setShowMenu(true);
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} className="block-wrapper group relative">
-      {/* Drag Handle + Menu */}
-      <div className="drag-handle absolute -left-8 top-0.5 flex items-center gap-0.5">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      className="block-wrapper group relative"
+      onContextMenu={handleContextMenu}
+    >
+      {/* Drag Handle + Block menu trigger */}
+      <div className="drag-handle absolute -left-10 top-0.5 flex items-center">
         <button
-          onClick={() => setShowMenu(!showMenu)}
-          className="w-6 h-6 flex items-center justify-center rounded hover:bg-notion-hover"
-          title="Click for menu"
+          onClick={(e) => {
+            const rect = (e.target as HTMLElement).getBoundingClientRect();
+            setMenuPos({ x: rect.left, y: rect.bottom });
+            setShowMenu(!showMenu);
+          }}
+          className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+          title="Click for actions"
         >
-          <svg className="w-4 h-4 text-notion-text-secondary" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
             <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
           </svg>
         </button>
         <button
           {...listeners}
-          className="w-6 h-6 flex items-center justify-center rounded hover:bg-notion-hover cursor-grab active:cursor-grabbing"
-          title="Drag to reorder"
+          className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-grab active:cursor-grabbing"
+          title="Drag to move"
         >
-          <svg className="w-4 h-4 text-notion-text-secondary" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+          <svg className="w-4 h-4 text-gray-400" viewBox="0 0 10 16" fill="currentColor">
+            <circle cx="3" cy="2" r="1.5" /><circle cx="7" cy="2" r="1.5" />
+            <circle cx="3" cy="8" r="1.5" /><circle cx="7" cy="8" r="1.5" />
+            <circle cx="3" cy="14" r="1.5" /><circle cx="7" cy="14" r="1.5" />
           </svg>
         </button>
       </div>
 
-      {/* Block Menu Dropdown */}
-      {showMenu && (
-        <div
-          className="absolute -left-8 top-7 bg-white border border-notion-border rounded shadow-lg z-50 py-1 min-w-[160px]"
-          onMouseLeave={() => setShowMenu(false)}
-        >
-          <button
-            onClick={() => { deleteBlock(blockId); setShowMenu(false); }}
-            className="w-full text-left px-3 py-1.5 text-sm hover:bg-notion-hover flex items-center gap-2"
-          >
-            <span>🗑️</span> Delete
-          </button>
-          <button
-            onClick={() => { duplicateBlock(blockId); setShowMenu(false); }}
-            className="w-full text-left px-3 py-1.5 text-sm hover:bg-notion-hover flex items-center gap-2"
-          >
-            <span>📋</span> Duplicate
-          </button>
-          <button
-            onClick={() => { addBlock('text', blockId, block.parentId); setShowMenu(false); }}
-            className="w-full text-left px-3 py-1.5 text-sm hover:bg-notion-hover flex items-center gap-2"
-          >
-            <span>➕</span> Add block below
-          </button>
-        </div>
-      )}
-
       {/* Block Content */}
       <BlockRenderer blockId={blockId} />
 
-      {/* Nested children */}
-      {block.childrenIds.length > 0 && (
+      {/* Nested children (for non-toggle blocks — toggle handles its own) */}
+      {block.type !== 'toggle' && block.type !== 'columns' && block.childrenIds.length > 0 && (
         <div>
           {block.childrenIds.map((childId) => (
             <BlockWrapper key={childId} blockId={childId} depth={depth + 1} />
           ))}
         </div>
+      )}
+
+      {/* Block Menu */}
+      {showMenu && menuPos && (
+        <BlockMenu
+          blockId={blockId}
+          position={menuPos}
+          onClose={() => setShowMenu(false)}
+        />
       )}
     </div>
   );

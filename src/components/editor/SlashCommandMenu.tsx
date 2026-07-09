@@ -1,20 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useEditorStore } from '@/store/editor-store';
-import type { BlockType, SlashCommand } from '@/types';
-
-const SLASH_COMMANDS: SlashCommand[] = [
-  { id: 'text', label: 'Text', description: 'Plain text block', icon: '📝', blockType: 'text', keywords: ['text', 'paragraph'] },
-  { id: 'h1', label: 'Heading 1', description: 'Large heading', icon: 'H₁', blockType: 'heading1', keywords: ['heading', 'h1', 'title'] },
-  { id: 'h2', label: 'Heading 2', description: 'Medium heading', icon: 'H₂', blockType: 'heading2', keywords: ['heading', 'h2', 'subtitle'] },
-  { id: 'h3', label: 'Heading 3', description: 'Small heading', icon: 'H₃', blockType: 'heading3', keywords: ['heading', 'h3'] },
-  { id: 'bullet', label: 'Bullet List', description: 'Unordered list item', icon: '•', blockType: 'bullet', keywords: ['bullet', 'list', 'unordered'] },
-  { id: 'numbered', label: 'Numbered List', description: 'Ordered list item', icon: '1.', blockType: 'numbered', keywords: ['number', 'ordered', 'list'] },
-  { id: 'todo', label: 'To-do', description: 'Checkbox item', icon: '☑️', blockType: 'todo', keywords: ['todo', 'checkbox', 'task'] },
-  { id: 'quote', label: 'Quote', description: 'Block quote', icon: '❝', blockType: 'quote', keywords: ['quote', 'blockquote'] },
-  { id: 'divider', label: 'Divider', description: 'Horizontal line', icon: '—', blockType: 'divider', keywords: ['divider', 'line', 'separator', 'hr'] },
-  { id: 'code', label: 'Code', description: 'Code block', icon: '<>', blockType: 'code', keywords: ['code', 'snippet', 'programming'] },
-  { id: 'image', label: 'Image', description: 'Upload or embed image', icon: '🖼️', blockType: 'image', keywords: ['image', 'picture', 'photo'] },
-];
+import { SLASH_COMMANDS } from '@/lib/constants';
+import type { SlashCommand } from '@/types';
 
 export function SlashCommandMenu() {
   const [query, setQuery] = useState('');
@@ -27,28 +14,51 @@ export function SlashCommandMenu() {
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const filteredCommands = SLASH_COMMANDS.filter(
-    (cmd) =>
-      cmd.label.toLowerCase().includes(query.toLowerCase()) ||
-      cmd.keywords.some((k) => k.includes(query.toLowerCase()))
-  );
+  const filteredCommands = useMemo(() =>
+    SLASH_COMMANDS.filter(
+      (cmd) =>
+        cmd.label.toLowerCase().includes(query.toLowerCase()) ||
+        cmd.keywords.some((k) => k.includes(query.toLowerCase()))
+    ), [query]);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  // Group by category
+  const grouped = useMemo(() => {
+    const groups: Record<string, SlashCommand[]> = {};
+    for (const cmd of filteredCommands) {
+      if (!groups[cmd.category]) groups[cmd.category] = [];
+      groups[cmd.category].push(cmd);
+    }
+    return groups;
+  }, [filteredCommands]);
 
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [query]);
+  useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(() => { setSelectedIndex(0); }, [query]);
 
   const executeCommand = (command: SlashCommand) => {
     if (slashMenuBlockId) {
       updateBlockType(slashMenuBlockId, command.blockType);
       updateBlockContent(slashMenuBlockId, { text: '' });
+
+      // Set defaults for special blocks
+      if (command.blockType === 'callout') {
+        updateBlockContent(slashMenuBlockId, { emoji: '💡', text: '' });
+      }
+      if (command.blockType === 'toggle') {
+        updateBlockContent(slashMenuBlockId, { expanded: true, text: '' });
+      }
+      if (command.blockType === 'code') {
+        updateBlockContent(slashMenuBlockId, { language: 'javascript', text: '' });
+      }
+      if (command.blockType === 'table') {
+        updateBlockContent(slashMenuBlockId, {
+          rows: [['', '', ''], ['', '', ''], ['', '', '']],
+        });
+      }
+      if (command.blockType === 'columns') {
+        updateBlockContent(slashMenuBlockId, { columnCount: 2 });
+      }
     }
     closeSlashMenu();
-
-    // Re-focus the block
     setTimeout(() => {
       const el = document.querySelector(`[data-block-id="${slashMenuBlockId}"]`) as HTMLElement;
       el?.focus();
@@ -64,9 +74,7 @@ export function SlashCommandMenu() {
       setSelectedIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (filteredCommands[selectedIndex]) {
-        executeCommand(filteredCommands[selectedIndex]);
-      }
+      if (filteredCommands[selectedIndex]) executeCommand(filteredCommands[selectedIndex]);
     } else if (e.key === 'Escape') {
       closeSlashMenu();
     }
@@ -74,51 +82,58 @@ export function SlashCommandMenu() {
 
   if (!slashMenuPosition) return null;
 
+  let flatIdx = 0;
+
   return (
     <div
       ref={menuRef}
-      className="slash-menu fixed bg-white border border-notion-border rounded-lg overflow-hidden z-[100] w-72"
-      style={{
-        top: slashMenuPosition.y + 4,
-        left: slashMenuPosition.x,
-      }}
+      className="slash-menu fixed bg-white dark:bg-[#252525] border border-[#e3e3e0] dark:border-[#3f3f3f] rounded-lg overflow-hidden z-[100] w-80"
+      style={{ top: Math.min(slashMenuPosition.y + 4, window.innerHeight - 350), left: slashMenuPosition.x }}
     >
-      {/* Search input */}
-      <div className="px-3 py-2 border-b border-notion-border">
+      <div className="px-3 py-2 border-b border-[#e3e3e0] dark:border-[#3f3f3f]">
         <input
           ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          onBlur={() => setTimeout(closeSlashMenu, 150)}
-          placeholder="Filter..."
-          className="w-full text-sm outline-none placeholder-gray-400"
+          onBlur={() => setTimeout(closeSlashMenu, 200)}
+          placeholder="Filter blocks..."
+          className="w-full text-sm outline-none bg-transparent placeholder-gray-400"
         />
       </div>
 
-      {/* Commands list */}
-      <div className="max-h-64 overflow-y-auto py-1">
+      <div className="max-h-72 overflow-y-auto py-1">
         {filteredCommands.length === 0 ? (
-          <div className="px-3 py-2 text-sm text-notion-text-secondary">No results</div>
+          <div className="px-3 py-4 text-sm text-gray-500 text-center">No results</div>
         ) : (
-          filteredCommands.map((cmd, idx) => (
-            <button
-              key={cmd.id}
-              onMouseDown={(e) => { e.preventDefault(); executeCommand(cmd); }}
-              onMouseEnter={() => setSelectedIndex(idx)}
-              className={`w-full text-left px-3 py-2 flex items-center gap-3 transition-colors ${
-                idx === selectedIndex ? 'bg-notion-hover' : ''
-              }`}
-            >
-              <span className="w-8 h-8 flex items-center justify-center bg-white border border-notion-border rounded text-sm">
-                {cmd.icon}
-              </span>
-              <div>
-                <div className="text-sm font-medium text-notion-text">{cmd.label}</div>
-                <div className="text-xs text-notion-text-secondary">{cmd.description}</div>
+          Object.entries(grouped).map(([category, commands]) => (
+            <div key={category}>
+              <div className="px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                {category}
               </div>
-            </button>
+              {commands.map((cmd) => {
+                const idx = flatIdx++;
+                return (
+                  <button
+                    key={cmd.id}
+                    onMouseDown={(e) => { e.preventDefault(); executeCommand(cmd); }}
+                    onMouseEnter={() => setSelectedIndex(idx)}
+                    className={`w-full text-left px-3 py-1.5 flex items-center gap-3 transition-colors ${
+                      idx === selectedIndex ? 'bg-[#efefef] dark:bg-[#3a3a3a]' : ''
+                    }`}
+                  >
+                    <span className="w-8 h-8 flex items-center justify-center bg-white dark:bg-[#2f2f2f] border border-[#e3e3e0] dark:border-[#3f3f3f] rounded text-sm flex-shrink-0">
+                      {cmd.icon}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium truncate">{cmd.label}</div>
+                      <div className="text-xs text-gray-500 truncate">{cmd.description}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           ))
         )}
       </div>

@@ -20,6 +20,10 @@
   ::selection {
     background: rgba(35, 131, 226, 0.28);
   }
+
+  .dark body, .dark {
+    color-scheme: dark;
+  }
 }
 
 @layer components {
@@ -31,8 +35,12 @@
 
   .block-content [contenteditable]:empty::before {
     content: attr(data-placeholder);
-    color: #9b9a97;
+    color: rgba(55, 53, 47, 0.4);
     pointer-events: none;
+  }
+
+  .dark .block-content [contenteditable]:empty::before {
+    color: rgba(255, 255, 255, 0.3);
   }
 
   .slash-menu {
@@ -50,10 +58,10 @@
 
   .drag-handle {
     opacity: 0;
-    transition: opacity 0.1s;
+    transition: opacity 0.15s;
   }
 
-  .block-wrapper:hover .drag-handle {
+  .block-wrapper:hover > .drag-handle {
     opacity: 1;
   }
 
@@ -61,10 +69,97 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
   }
 
-  .breadcrumb-separator::after {
-    content: '/';
-    margin: 0 4px;
-    color: #9b9a97;
+  /* Toggle block */
+  .toggle-arrow {
+    transition: transform 0.2s;
+  }
+
+  .toggle-arrow.expanded {
+    transform: rotate(90deg);
+  }
+
+  /* Callout */
+  .callout-block {
+    border-radius: 4px;
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  /* Cover image */
+  .cover-image {
+    height: 200px;
+    object-fit: cover;
+    width: 100%;
+  }
+
+  /* Context menu */
+  .context-menu {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    animation: fadeIn 0.1s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Table */
+  .simple-table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  .simple-table td,
+  .simple-table th {
+    border: 1px solid #e3e3e0;
+    padding: 6px 10px;
+    min-width: 100px;
+  }
+
+  .dark .simple-table td,
+  .dark .simple-table th {
+    border-color: #3f3f3f;
+  }
+
+  /* Equation block */
+  .equation-block {
+    font-family: 'KaTeX_Math', serif;
+    font-style: italic;
+  }
+
+  /* Bookmark */
+  .bookmark-card {
+    border: 1px solid #e3e3e0;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+
+  .bookmark-card:hover {
+    background: #f7f6f3;
+  }
+
+  .dark .bookmark-card {
+    border-color: #3f3f3f;
+  }
+
+  .dark .bookmark-card:hover {
+    background: #2f2f2f;
+  }
+
+  /* Columns */
+  .columns-container {
+    display: flex;
+    gap: 16px;
+  }
+
+  .columns-container > .column {
+    flex: 1;
+    min-width: 0;
   }
 }
 
@@ -84,5 +179,9 @@
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: #aeaea8;
+  }
+
+  .dark .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
   }
 }
