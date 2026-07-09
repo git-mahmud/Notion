@@ -5,6 +5,11 @@ import type { WebhookEvent } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 
 export async function POST(req: Request) {
+  if (!db) {
+    // No database configured, just acknowledge the webhook
+    return new NextResponse(null, { status: 200 });
+  }
+
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
   if (!WEBHOOK_SECRET) {

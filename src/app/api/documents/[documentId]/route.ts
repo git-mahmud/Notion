@@ -9,6 +9,10 @@ export async function GET(req: Request, { params }: { params: { documentId: stri
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    if (!db) {
+      return new NextResponse("Database not configured", { status: 503 });
+    }
+
     const document = await db.document.findUnique({
       where: { id: params.documentId },
       include: { children: { orderBy: { position: "asc" } } },
@@ -31,6 +35,10 @@ export async function PATCH(req: Request, { params }: { params: { documentId: st
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    if (!db) {
+      return new NextResponse("Database not configured", { status: 503 });
+    }
+
     const body = await req.json();
 
     const document = await db.document.update({
@@ -49,6 +57,10 @@ export async function DELETE(req: Request, { params }: { params: { documentId: s
     const { userId } = await auth();
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    if (!db) {
+      return new NextResponse("Database not configured", { status: 503 });
     }
 
     await db.document.delete({ where: { id: params.documentId } });

@@ -15,9 +15,11 @@ export async function getAuthUserId(): Promise<string> {
 
 /**
  * Get the current authenticated user from the database.
- * Creates the user record if it doesn't exist (handles race condition with webhooks).
+ * Returns null if no database is configured.
  */
 export async function getCurrentDbUser() {
+  if (!db) return null;
+
   const { userId } = await auth();
   if (!userId) return null;
 
@@ -45,9 +47,11 @@ export async function getCurrentDbUser() {
 
 /**
  * Get the user's default workspace.
- * Creates one if it doesn't exist.
+ * Returns null if no database is configured.
  */
 export async function getDefaultWorkspace(userId: string) {
+  if (!db) return null;
+
   const membership = await db.workspaceMember.findFirst({
     where: { userId },
     include: { workspace: true },

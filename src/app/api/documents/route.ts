@@ -9,6 +9,10 @@ export async function GET() {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    if (!db) {
+      return NextResponse.json([]);
+    }
+
     const documents = await db.document.findMany({
       where: { authorId: userId, isArchived: false, parentId: null },
       orderBy: { position: "asc" },
@@ -25,6 +29,10 @@ export async function POST(req: Request) {
     const { userId } = await auth();
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    if (!db) {
+      return new NextResponse("Database not configured", { status: 503 });
     }
 
     const body = await req.json();
