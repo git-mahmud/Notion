@@ -2,15 +2,18 @@
 
 import { useRef, useState } from "react";
 import { ChevronsLeft, PlusCircle, Search, Settings, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { UserMenu } from "@/components/shared/user-menu";
 
 export function Sidebar() {
   const sidebarRef = useRef<HTMLElement>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(260);
+  const router = useRouter();
 
   const handleMouseDown = () => {
     setIsResizing(true);
@@ -74,11 +77,19 @@ export function Sidebar() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t p-2">
-          <Button variant="ghost" size="sm" className="h-8 gap-2 text-xs text-muted-foreground">
-            <Trash2 className="h-3.5 w-3.5" /> Trash
-          </Button>
-          <ThemeToggle />
+        <div className="border-t p-2">
+          <UserMenu />
+          <div className="mt-1 flex items-center justify-between px-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-2 text-xs text-muted-foreground"
+              onClick={() => router.push("/settings")}
+            >
+              <Settings className="h-3.5 w-3.5" /> Settings
+            </Button>
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* Resize handle */}

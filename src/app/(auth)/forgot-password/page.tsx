@@ -1,30 +1,28 @@
-import { SignUp } from "@clerk/nextjs";
+import { SignIn } from "@clerk/nextjs";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sign Up — Notion Clone",
+  title: "Reset Password — Notion Clone",
 };
 
-export default function SignUpPage() {
+// Clerk handles forgot password through the SignIn component's "Forgot password?" link.
+// This page provides a direct entry point that starts at the reset flow.
+export default function ForgotPasswordPage() {
   return (
-    <SignUp
+    <SignIn
       appearance={{
         elements: {
           rootBox: "w-full",
           card: "shadow-none w-full",
           headerTitle: "text-xl font-bold",
           headerSubtitle: "text-muted-foreground",
-          socialButtonsBlockButton:
-            "border border-input bg-background hover:bg-accent text-foreground",
           formButtonPrimary: "bg-primary hover:bg-primary/90 text-primary-foreground",
           footerActionLink: "text-primary hover:text-primary/80",
           formFieldInput: "border-input",
-          dividerLine: "bg-border",
-          dividerText: "text-muted-foreground",
         },
       }}
+      initialValues={{ emailAddress: "" }}
       forceRedirectUrl="/documents"
-      signInUrl="/sign-in"
     />
   );
 }
