@@ -4,6 +4,7 @@ import { UserProfile, useUser, useClerk } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
 import { LogOut, Moon, Sun, Monitor } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -87,9 +88,11 @@ export default function SettingsPage() {
 
         {/* Inline user info */}
         <div className="flex items-center gap-4 rounded-md border p-4">
-          <img
-            src={user?.imageUrl}
+          <Image
+            src={user?.imageUrl || ""}
             alt={user?.fullName || "Avatar"}
+            width={48}
+            height={48}
             className="h-12 w-12 rounded-full"
           />
           <div className="flex-1">

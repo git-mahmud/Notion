@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 
-export async function GET(req: Request, { params }: { params: { documentId: string } }) {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ documentId: string }> }
+) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -13,8 +16,10 @@ export async function GET(req: Request, { params }: { params: { documentId: stri
       return new NextResponse("Database not configured", { status: 503 });
     }
 
+    const { documentId } = await params;
+
     const document = await db.document.findUnique({
-      where: { id: params.documentId },
+      where: { id: documentId },
       include: { children: { orderBy: { position: "asc" } } },
     });
 
@@ -28,7 +33,10 @@ export async function GET(req: Request, { params }: { params: { documentId: stri
   }
 }
 
-export async function PATCH(req: Request, { params }: { params: { documentId: string } }) {
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ documentId: string }> }
+) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -39,10 +47,11 @@ export async function PATCH(req: Request, { params }: { params: { documentId: st
       return new NextResponse("Database not configured", { status: 503 });
     }
 
+    const { documentId } = await params;
     const body = await req.json();
 
     const document = await db.document.update({
-      where: { id: params.documentId },
+      where: { id: documentId },
       data: body,
     });
 
@@ -52,7 +61,10 @@ export async function PATCH(req: Request, { params }: { params: { documentId: st
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { documentId: string } }) {
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ documentId: string }> }
+) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -63,7 +75,9 @@ export async function DELETE(req: Request, { params }: { params: { documentId: s
       return new NextResponse("Database not configured", { status: 503 });
     }
 
-    await db.document.delete({ where: { id: params.documentId } });
+    const { documentId } = await params;
+
+    await db.document.delete({ where: { id: documentId } });
 
     return new NextResponse(null, { status: 204 });
   } catch {
