@@ -6,7 +6,7 @@ interface NumberedBlockProps {
 }
 
 export function NumberedBlock({ blockId }: NumberedBlockProps) {
-  const { ref, handleInput, handleKeyDown, handleFocus, handlePaste, text } = useBlockEditing(blockId);
+  const { ref, handleInput, handleKeyDown, handleFocus, handlePaste } = useBlockEditing(blockId);
   const block = useEditorStore((s) => s.blocks[blockId]);
   const blocks = useEditorStore((s) => s.blocks);
   const rootBlockIds = useEditorStore((s) => s.rootBlockIds);
@@ -38,9 +38,7 @@ export function NumberedBlock({ blockId }: NumberedBlockProps) {
         onFocus={handleFocus}
         onPaste={handlePaste}
         className="flex-1 outline-none text-base text-notion-text leading-relaxed empty:before:content-[attr(data-placeholder)] empty:before:text-gray-300 empty:before:pointer-events-none"
-      >
-        {text}
-      </div>
+      />
     </div>
   );
 }

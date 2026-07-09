@@ -18,7 +18,7 @@ const placeholders = {
 };
 
 export function HeadingBlock({ blockId, level }: HeadingBlockProps) {
-  const { ref, handleInput, handleKeyDown, handleFocus, handlePaste, text } = useBlockEditing(blockId);
+  const { ref, handleInput, handleKeyDown, handleFocus, handlePaste } = useBlockEditing(blockId);
 
   return (
     <div
@@ -32,8 +32,6 @@ export function HeadingBlock({ blockId, level }: HeadingBlockProps) {
       onFocus={handleFocus}
       onPaste={handlePaste}
       className={`py-1 px-1 outline-none text-notion-text leading-tight empty:before:content-[attr(data-placeholder)] empty:before:text-gray-300 empty:before:pointer-events-none ${headingStyles[level]}`}
-    >
-      {text}
-    </div>
+    />
   );
 }

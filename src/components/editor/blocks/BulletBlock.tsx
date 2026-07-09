@@ -5,7 +5,7 @@ interface BulletBlockProps {
 }
 
 export function BulletBlock({ blockId }: BulletBlockProps) {
-  const { ref, handleInput, handleKeyDown, handleFocus, handlePaste, text } = useBlockEditing(blockId);
+  const { ref, handleInput, handleKeyDown, handleFocus, handlePaste } = useBlockEditing(blockId);
 
   return (
     <div className="flex items-start gap-2 py-1">
@@ -21,9 +21,7 @@ export function BulletBlock({ blockId }: BulletBlockProps) {
         onFocus={handleFocus}
         onPaste={handlePaste}
         className="flex-1 outline-none text-base text-notion-text leading-relaxed empty:before:content-[attr(data-placeholder)] empty:before:text-gray-300 empty:before:pointer-events-none"
-      >
-        {text}
-      </div>
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useEditorStore } from '@/store/editor-store';
 import { useWorkspaceStore } from '@/store/workspace-store';
 import { PageHeader } from './PageHeader';
@@ -45,11 +45,6 @@ export function PageView({ pageId }: PageViewProps) {
     });
     return () => { unregUndo(); unregRedo(); };
   }, [undo, redo]);
-
-  const handleSaveSnapshot = useCallback(async () => {
-    const { createSnapshot } = useEditorStore.getState();
-    await createSnapshot();
-  }, []);
 
   if (!page) return null;
 

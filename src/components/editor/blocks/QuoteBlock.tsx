@@ -5,7 +5,7 @@ interface QuoteBlockProps {
 }
 
 export function QuoteBlock({ blockId }: QuoteBlockProps) {
-  const { ref, handleInput, handleKeyDown, handleFocus, handlePaste, text } = useBlockEditing(blockId);
+  const { ref, handleInput, handleKeyDown, handleFocus, handlePaste } = useBlockEditing(blockId);
 
   return (
     <div className="border-l-[3px] border-notion-text pl-4 py-1">
@@ -20,9 +20,7 @@ export function QuoteBlock({ blockId }: QuoteBlockProps) {
         onFocus={handleFocus}
         onPaste={handlePaste}
         className="outline-none text-base text-notion-text leading-relaxed empty:before:content-[attr(data-placeholder)] empty:before:text-gray-300 empty:before:pointer-events-none"
-      >
-        {text}
-      </div>
+      />
     </div>
   );
 }

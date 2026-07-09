@@ -17,6 +17,15 @@ export function useBlockEditing(blockId: string) {
   const rootBlockIds = useEditorStore((s) => s.rootBlockIds);
   const blocks = useEditorStore((s) => s.blocks);
 
+  // Initialize text content from store
+  useEffect(() => {
+    if (ref.current && block?.content.text) {
+      if (ref.current.textContent !== block.content.text) {
+        ref.current.textContent = block.content.text;
+      }
+    }
+  }, [blockId]); // Only on mount/block change, not on every keystroke
+
   // Focus management
   useEffect(() => {
     if (activeBlockId === blockId && ref.current) {

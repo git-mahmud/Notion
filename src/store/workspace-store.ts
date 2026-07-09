@@ -54,7 +54,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   sidebarCollapsed: false,
 
   initialize: async () => {
-    const allPages = await db.pages.where('isArchived').equals(0).toArray();
+    const allPages = (await db.pages.toArray()).filter((p) => !p.isArchived);
     const pagesMap: Record<string, PageTreeNode> = {};
     const rootIds: string[] = [];
 

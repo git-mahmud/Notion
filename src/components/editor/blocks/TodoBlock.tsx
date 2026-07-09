@@ -6,7 +6,7 @@ interface TodoBlockProps {
 }
 
 export function TodoBlock({ blockId }: TodoBlockProps) {
-  const { ref, handleInput, handleKeyDown, handleFocus, handlePaste, text } = useBlockEditing(blockId);
+  const { ref, handleInput, handleKeyDown, handleFocus, handlePaste } = useBlockEditing(blockId);
   const block = useEditorStore((s) => s.blocks[blockId]);
   const updateBlockContent = useEditorStore((s) => s.updateBlockContent);
 
@@ -41,9 +41,7 @@ export function TodoBlock({ blockId }: TodoBlockProps) {
         className={`flex-1 outline-none text-base leading-relaxed empty:before:content-[attr(data-placeholder)] empty:before:text-gray-300 empty:before:pointer-events-none ${
           checked ? 'line-through text-notion-text-secondary' : 'text-notion-text'
         }`}
-      >
-        {text}
-      </div>
+      />
     </div>
   );
 }
